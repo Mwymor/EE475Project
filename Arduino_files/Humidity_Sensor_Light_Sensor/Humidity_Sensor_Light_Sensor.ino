@@ -9,6 +9,7 @@
 //#define DHTTYPE DHT11   // DHT 11
 #define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
 #define LIGHT_SENSOR_PIN 36 // ESP32 pin GIOP36 (ADC0)
+#define sensorPin 15
 //#define DHTTYPE DHT21   // DHT 21 (AM2301)
 
 // Connect pin 1 (on the left) of the sensor to +5V
@@ -83,6 +84,12 @@ void loop() {
     Serial.println(" => Dark");
   }
 
+
+
+  Serial.print("Analog output: ");
+
+  Serial.println(readSensor());
+
   delay(500);
 
   // int temp=digitalRead(2);      //assign value of LDR sensor to a temporary variable
@@ -93,4 +100,15 @@ void loop() {
   //   digitalWrite(22,HIGH);        //if light is not present,LED on
   // else
   //   digitalWrite(22,LOW);         //if light is present,LED off
+}
+
+
+int readSensor() {
+
+  int sensorValue = analogRead(sensorPin);  // Read the analog value from sensor
+
+  // int outputValue = map(sensorValue, 0, 1023, 255, 0); // map the 10-bit data to 8-bit data
+
+  return sensorValue;             // Return analog rain value
+
 }
