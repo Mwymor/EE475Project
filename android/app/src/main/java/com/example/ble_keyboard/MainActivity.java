@@ -1,12 +1,14 @@
 package com.example.ble_keyboard;
 
 import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
@@ -37,7 +39,9 @@ import android.view.View;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
@@ -45,12 +49,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     final private int REQUEST_CODE_PERMISSION_LOCATION = 0;
     private AlertDialog.Builder dialogBuilder;
     private BleDeviceAdapter bleDeviceAdapter;
     private BleDevice activeBleDevice;
+    private ViewGroup mListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +63,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        // ********************************************************
+        if (BuildConfig.MAPS_API_KEY.isEmpty()) {
+            Toast.makeText(this, "Add your own API key in local.properties as MAPS_API_KEY=YOUR_API_KEY", Toast.LENGTH_LONG).show();
+        }
+        mListView = findViewById(R.id.list);
+        addDemo("GRUP 5 TSET", HeatmapActivity.class);
+        // ********************************************************
 
         bleDeviceAdapter = new BleDeviceAdapter(MainActivity.this, android.R.layout.select_dialog_singlechoice);
 
@@ -107,6 +120,25 @@ public class MainActivity extends AppCompatActivity {
                 .setConnectOverTime(20000)
                 .setOperateTimeout(5000);
     }
+
+
+    // to have the google map API *******************************
+    private void addDemo(String demoName, Class<? extends Activity> activityClass) {
+        Button b = new Button(this);
+        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        b.setLayoutParams(layoutParams);
+        b.setText(demoName);
+        b.setTag(activityClass);
+        b.setOnClickListener(this);
+        mListView.addView(b);
+    }
+
+    @Override
+    public void onClick(View view) {
+        Class activityClass = (Class) view.getTag();
+        startActivity(new Intent(this, activityClass));
+    }
+    // ************************************************************
 
     @Override
     protected void onResume() {
