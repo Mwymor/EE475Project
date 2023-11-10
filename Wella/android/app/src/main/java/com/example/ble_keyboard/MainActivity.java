@@ -10,9 +10,13 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.Query;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -74,12 +78,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
     SupportMapFragment supportMapFragment;
     FusedLocationProviderClient fusedLocationProviderClient;
     private FirebaseFirestore firestore;
+    private Timer timer;
     //=======================================================================================================================
     final private int REQUEST_CODE_PERMISSION_LOCATION = 0;
     private AlertDialog.Builder dialogBuilder;
@@ -291,11 +298,11 @@ public class MainActivity extends AppCompatActivity {
                                         }
 
                                         if (check_data.substring(0,4).equals("111 ")) {
-                                            String solar = check_data.substring(4, 9);
+                                            String solar = check_data.substring(4, 5);
                                             TextView textView3 = (TextView) findViewById(R.id.SolarNum);
                                             textView3.setText(solar);
 
-                                            String rain = check_data.substring(10, 15);
+                                            String rain = check_data.substring(6, 11);
                                             TextView textView4 = (TextView) findViewById(R.id.RainNum);
                                             textView4.setText(rain);
                                         }
@@ -422,33 +429,41 @@ public class MainActivity extends AppCompatActivity {
                         if(location != null){
                             LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
 
-                            // Sending the current location coordinate to Firebase=======================================
-//                            Map<String,Object> users = new HashMap<>();
-//                            users.put("current location coordinate",latLng);
-                            firestore.collection("users").add(latLng).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                            // Sending the current location coordinate with Timer to Firebase=======================================
+                            Map<String, Object> data = new HashMap<>();
+                            data.put("coordinate", latLng);
+                            data.put("timestamp", FieldValue.serverTimestamp());
+                            timer = new Timer();
+                            timer.scheduleAtFixedRate(new TimerTask() {
                                 @Override
-                                public void onSuccess(DocumentReference documentReference) {
-                                    Toast.makeText(getApplicationContext(), "Success uploading on firebase", Toast.LENGTH_LONG).show();
+                                public void run() {
+                                    firestore.collection("users").add(data).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                        @Override
+                                        public void onSuccess(DocumentReference documentReference) {
+                                            Toast.makeText(getApplicationContext(), "Success uploading on firebase", Toast.LENGTH_LONG).show();
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(getApplicationContext(), "Fail uploading on firebase", Toast.LENGTH_LONG).show();
+                                        }
+                                    });
                                 }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(getApplicationContext(), "Fail uploading on firebase", Toast.LENGTH_LONG).show();
-                                }
-                            });
-                            // ===========================================================================================
-
+                            }, 0, 60*1000);
                             // Fetching some coordinate from Firebase=====================================================
                             CollectionReference collectionReference = firestore.collection("users");
                             collectionReference.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                                 @Override
                                 public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                    int i = 1;
                                     for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                                         Map<String, Object> data = documentSnapshot.getData();
-                                        LatLng latLng1 = new LatLng((Double) data.get("latitude"),(Double) data.get("longitude"));
+                                        Map<String, Object> coordinate = (Map<String, Object>) data.get("coordinate");
+                                        LatLng latLng1 = new LatLng((Double) coordinate.get("latitude"),(Double) coordinate.get("longitude"));
 
-                                        MarkerOptions markerOptions = new MarkerOptions().position(latLng1).title("location from firestore");
+                                        MarkerOptions markerOptions = new MarkerOptions().position(latLng1).title(i + " location from firestore");
                                         googleMap.addMarker(markerOptions);
+                                        i++;
                                     }
                                 }
                             }).addOnFailureListener(new OnFailureListener() {
