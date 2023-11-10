@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "221442339630",
+    "project_id": "wella-152f2",
+    "storage_bucket": "wella-152f2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:221442339630:android:f58f21d51690491e1700bf",
+        "android_client_info": {
+          "package_name": "com.example.ble_keyboard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDobSqxgUvOmoSHFj1sqmcDzLtKtc3lpQ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
