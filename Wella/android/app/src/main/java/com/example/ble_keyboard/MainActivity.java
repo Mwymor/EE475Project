@@ -439,53 +439,52 @@ public class MainActivity extends AppCompatActivity {
                             data.put("coordinate", latLng);
                             data.put("timestamp", FieldValue.serverTimestamp());
                             data.put("temperature", temp);
-                            timer = new Timer();
-                            timer.scheduleAtFixedRate(new TimerTask() {
+                            firestore.collection("users").add(data).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                 @Override
-                                public void run() {
-                                    firestore.collection("users").add(data).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                        @Override
-                                        public void onSuccess(DocumentReference documentReference) {
-                                            Toast.makeText(getApplicationContext(), "Success uploading on firebase", Toast.LENGTH_LONG).show();
-                                        }
-                                    }).addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            Toast.makeText(getApplicationContext(), "Fail uploading on firebase", Toast.LENGTH_LONG).show();
-                                        }
-                                    });
-                                }
-                            }, 0, 60*1000);
-                            // Fetching some coordinate from Firebase=====================================================
-                            Calendar calendar = Calendar.getInstance();
-                            calendar.add(Calendar.MINUTE, -10);
-                            Date limitTime = calendar.getTime();
-                            CollectionReference collectionReference = firestore.collection("users");
-                            collectionReference.whereGreaterThan("timestamp", limitTime).orderBy("timestamp", Query.Direction.DESCENDING)
-                                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                @Override
-                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                    int i = 1;
-                                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                                        Map<String, Object> data = documentSnapshot.getData();
-                                        Map<String, Object> coordinate = (Map<String, Object>) data.get("coordinate");
-                                        LatLng latLng1 = new LatLng((Double) coordinate.get("latitude"),(Double) coordinate.get("longitude"));
-
-                                        TextView textView1 = (TextView) findViewById(R.id.TempNum);
-                                        textView1.setText(data.get("temperature").toString());
-
-                                        MarkerOptions markerOptions = new MarkerOptions().position(latLng1).title(i + " location from firestore");
-                                        googleMap.addMarker(markerOptions);
-                                        i++;
-                                    }
+                                public void onSuccess(DocumentReference documentReference) {
+                                    Toast.makeText(getApplicationContext(), "Success uploading on firebase", Toast.LENGTH_LONG).show();
                                 }
                             }).addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
-                                    MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("fail to fetch from firestore");
-                                    googleMap.addMarker(markerOptions);
+                                    Toast.makeText(getApplicationContext(), "Fail uploading on firebase", Toast.LENGTH_LONG).show();
                                 }
                             });
+                            // Fetching some coordinate from Firebase=====================================================
+                            timer = new Timer();
+                            timer.scheduleAtFixedRate(new TimerTask() {
+                                public void run() {
+                                    Calendar calendar = Calendar.getInstance();
+                                    calendar.add(Calendar.MINUTE, -10);
+                                    Date limitTime = calendar.getTime();
+                                    CollectionReference collectionReference = firestore.collection("users");
+                                    collectionReference.whereGreaterThan("timestamp", limitTime).orderBy("timestamp", Query.Direction.DESCENDING)
+                                            .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                @Override
+                                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                                    int i = 1;
+                                                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                                                        Map<String, Object> data = documentSnapshot.getData();
+                                                        Map<String, Object> coordinate = (Map<String, Object>) data.get("coordinate");
+                                                        LatLng latLng1 = new LatLng((Double) coordinate.get("latitude"), (Double) coordinate.get("longitude"));
+
+                                                        TextView textView1 = (TextView) findViewById(R.id.TempNum);
+                                                        textView1.setText(data.get("temperature").toString());
+
+                                                        MarkerOptions markerOptions = new MarkerOptions().position(latLng1).title(i + " location from firestore");
+                                                        googleMap.addMarker(markerOptions);
+                                                        i++;
+                                                    }
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("fail to fetch from firestore");
+                                                    googleMap.addMarker(markerOptions);
+                                                }
+                                            });
+                                }
+                            }, 0, 60*1000);
                             // ===========================================================================================
 
                             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("Current Location !");
