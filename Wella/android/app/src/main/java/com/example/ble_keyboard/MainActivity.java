@@ -15,12 +15,12 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.Query;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.karumi.dexter.Dexter;
@@ -73,6 +73,7 @@ import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -92,6 +93,10 @@ public class MainActivity extends AppCompatActivity {
     private AlertDialog.Builder dialogBuilder;
     private BleDeviceAdapter bleDeviceAdapter;
     private BleDevice activeBleDevice;
+    public static String temp;
+    public static String humid;
+    public static String solar;
+    public static String rain;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -288,23 +293,23 @@ public class MainActivity extends AppCompatActivity {
                                         System.out.println(data.length);
 
                                         if (check_data.substring(0,4).equals("999 ")) {
-                                            String temp = check_data.substring(4, 9);
-                                            TextView textView1 = (TextView) findViewById(R.id.TempNum);
-                                            textView1.setText(temp);
+                                            temp = check_data.substring(4, 9);
+                                            // TextView textView1 = (TextView) findViewById(R.id.TempNum);
+                                            // textView1.setText(temp);
 
-                                            String humid = check_data.substring(10, 15);
+                                            humid = check_data.substring(10, 15);
                                             TextView textView2 = (TextView) findViewById(R.id.HumidNum);
                                             textView2.setText(humid);
                                         }
 
                                         if (check_data.substring(0,4).equals("111 ")) {
-                                            String solar = check_data.substring(4, 5);
+                                            solar = check_data.substring(4, 5);
                                             TextView textView3 = (TextView) findViewById(R.id.SolarNum);
                                             textView3.setText(solar);
 
-                                            String rain = check_data.substring(6, 11);
+                                            rain = check_data.substring(6, 11);
                                             TextView textView4 = (TextView) findViewById(R.id.RainNum);
-                                            textView4.setText(rain);
+                                            textView4.setText(temp);
                                         }
 
                                         // String id = Long.toString(System.currentTimeMillis());
@@ -433,6 +438,7 @@ public class MainActivity extends AppCompatActivity {
                             Map<String, Object> data = new HashMap<>();
                             data.put("coordinate", latLng);
                             data.put("timestamp", FieldValue.serverTimestamp());
+                            data.put("temperature", temp);
                             timer = new Timer();
                             timer.scheduleAtFixedRate(new TimerTask() {
                                 @Override
@@ -451,8 +457,12 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }, 0, 60*1000);
                             // Fetching some coordinate from Firebase=====================================================
+                            Calendar calendar = Calendar.getInstance();
+                            calendar.add(Calendar.MINUTE, -10);
+                            Date limitTime = calendar.getTime();
                             CollectionReference collectionReference = firestore.collection("users");
-                            collectionReference.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                            collectionReference.whereGreaterThan("timestamp", limitTime).orderBy("timestamp", Query.Direction.DESCENDING)
+                                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                                 @Override
                                 public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                                     int i = 1;
@@ -460,6 +470,9 @@ public class MainActivity extends AppCompatActivity {
                                         Map<String, Object> data = documentSnapshot.getData();
                                         Map<String, Object> coordinate = (Map<String, Object>) data.get("coordinate");
                                         LatLng latLng1 = new LatLng((Double) coordinate.get("latitude"),(Double) coordinate.get("longitude"));
+
+                                        TextView textView1 = (TextView) findViewById(R.id.TempNum);
+                                        textView1.setText(data.get("temperature").toString());
 
                                         MarkerOptions markerOptions = new MarkerOptions().position(latLng1).title(i + " location from firestore");
                                         googleMap.addMarker(markerOptions);
