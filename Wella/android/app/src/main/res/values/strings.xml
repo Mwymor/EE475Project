@@ -4,4 +4,6 @@
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
     <string name="please_open_blue">Please enable bluetooth</string>
+    <string name="channel_name">wella</string>
+    <string name="channel_description">out of range</string>
 </resources>
