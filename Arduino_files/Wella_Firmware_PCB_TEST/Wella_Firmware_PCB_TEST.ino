@@ -7,13 +7,14 @@
 #include <DHT.h>
 // #include <SparkFun_MAX1704x_Fuel_Gauge_Arduino_Library.h>
 
-#define DHTPIN 17     // red esp
-// #define DHTPIN 26     // Black esp
+// #define DHTPIN 17     // red esp
+#define DHTPIN 26     // Black esp
 #define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
-#define LIGHT_SENSOR_PIN 25 //red esp
-// #define LIGHT_SENSOR_PIN 4 //black esp
-#define RAIN_SENSOR_PIN 14
-#define RAIN_SENSOR_2_PIN 32
+// #define LIGHT_SENSOR_PIN 25 //red esp
+#define LIGHT_SENSOR_PIN 4 //black esp
+#define RAIN_SENSOR_PIN 36
+#define RAIN_SENSOR_2_PIN 39
+#define RAIN_SENSOR_3_PIN 34
 BLEService customService("3708a9dd-7544-44bb-b86b-400709028fc1");  // 1816 is the defined UUID for cycling tech...
 BLECharacteristic txCharacteristic("4c64ae25-4411-49dd-baea-765bebcaf246",  // Custom characteristic UUID
                                    BLERead | BLENotify, 
@@ -48,7 +49,7 @@ void setup() {
   }
   
   // Set the local name and service information
-  BLE.setLocalName("Wella Prototype");
+  BLE.setLocalName("Wella PCB TEST");
   BLE.setAdvertisedService(customService);
   // Add custom characteristic
   customService.addCharacteristic(txCharacteristic);
